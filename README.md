@@ -1,0 +1,1 @@
+# otcoin-gpu-miner-
