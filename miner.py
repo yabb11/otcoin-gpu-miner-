@@ -13,10 +13,11 @@ import numpy as np
 API_URL = "http://76.13.192.203:8080"
 WALLET = "1e85b2d09e2f2e8477e3a142c7ca5a6019f29847f"
 
-# RTX 4080 SUPER 优化参数
-BLOCKS = 4096
-THREADS = 1024
-BATCH_SIZE = BLOCKS * THREADS * 256
+# RTX 4080 SUPER 稳定参数
+BLOCKS = 65536          # 减半
+THREADS = 512           # 减半
+HASHES_PER_THREAD = 128 # 减半
+BATCH_SIZE = BLOCKS * THREADS * HASHES_PER_THREAD
 
 sha256_kernel = cp.RawKernel(r'''
 extern "C" {
@@ -228,10 +229,9 @@ def main():
             prefix_gpu[:prefix_len] = cp.asarray(prefix_bytes)
             found[0] = 0
 
-            hashes_per_thread = 64
             sha256_kernel(
                 (BLOCKS,), (THREADS,),
-                (prefix_gpu, prefix_len, gpu_nonce, hashes_per_thread,
+                (prefix_gpu, prefix_len, gpu_nonce, HASHES_PER_THREAD,  # 用变量
                  result_nonce, found)
             )
             cp.cuda.Stream.null.synchronize()
